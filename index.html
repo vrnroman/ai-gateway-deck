@@ -241,8 +241,8 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
           </tr>
           <tr>
             <td class="rowhead">In-house build</td>
-            <td data-label="License"><span class="badge b-neutral">YOURS</span> FastAPI/Go + Redis + Postgres</td>
-            <td data-label="Price">MVP in <span class="kicker">2–3 days</span> (strong team, AI-assisted); production <span class="kicker">4–6 eng-mo</span> + 0.1–0.25 FTE forever</td>
+            <td data-label="License"><span class="badge b-neutral">YOURS</span> Go (fast path; Rust if >5k RPS) + Redis + Postgres</td>
+            <td data-label="Price">MVP in <span class="kicker">2–3 days</span> (strong team, AI-assisted); production <span class="kicker">~2 eng-mo</span> + 0.1–0.25 FTE forever</td>
             <td data-label="Self-host infra" class="tt">~$300–800/mo<span class="small">incl. log storage</span></td>
             <td data-label="Fit">Day-1 wins are real (slide 4). Durable tax: per-model price tables, streaming cost accounting, &lt;200ms PII at RPS, SSO, audit, provider churn oncall</td>
             <td data-label="Security"><span class="badge b-neutral">YOUR PROBLEM</span> you own CVEs, audits, key custody</td>
@@ -308,7 +308,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
     <div class="grid3" style="margin-bottom:16px">
       <div class="panel stat"><span class="n">$0</span><span class="l">week 0: Anthropic’s built-in Claude apps gateway — SSO, per-group managed settings, OTLP metrics. May cover auth + attribution alone</span></div>
       <div class="panel stat"><span class="n">~$200<span style="font-size:13px">/mo</span></span><span class="l">Bifrost OSS self-hosted on GCP/AWS (0.25% of token spend) — or $0 infra + $499/mo TrueFoundry SaaS if you want zero ops</span></div>
-      <div class="panel stat"><span class="n">>4–6 <span style="font-size:13px">mo</span></span><span class="l">for an in-house build to reach production-grade (HA, accurate streaming metering, audit, SSO) — MVP itself is 2–3 days for a strong team. Plus 0.1–0.25 FTE forever</span></div>
+      <div class="panel stat"><span class="n">~2 <span style="font-size:13px">mo</span></span><span class="l">for an in-house build to reach production-grade (HA, accurate streaming metering, audit, SSO) — MVP itself is 2–3 days for a strong team. Plus 0.1–0.25 FTE forever</span></div>
     </div>
 
     <div class="grid2">
@@ -319,7 +319,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
           <li><span class="kicker">2 · Core gateway: Bifrost OSS self-host</span> (clean security record, µs-scale in-process PII, translation core feature). Pay Enterprise only when you need OIDC/SCIM + the Anthropic-passthrough route. <span class="kicker">Swing factor:</span> if the Copilot budget lane is a day-1 requirement, LiteLLM is the pragmatic pick (first-class Copilot provider) — but only pinned + hash-verified + network-isolated. <span class="kicker">No-ops option:</span> TrueFoundry SaaS $499/mo.</li>
           <li><span class="kicker">3 · Budget lane:</span> GitHub Copilot upstream (Kimi K3, Kimi K2.7 Code, DeepSeek) — LiteLLM has a first-class Copilot provider; admin must enable open-weight models. Bedrock PAYG (GLM 4.7 Flash, DeepSeek V3.2) as the metered lane for unattended agents.</li>
           <li><span class="kicker">4 · Failover:</span> Anthropic → Bedrock PAYG (Claude-family continuity). OpenRouter only as emergency backstop — its 5% fee ≈ $4k/mo at our scale.</li>
-          <li><span class="kicker">5 · Revisit in-house build</span> only if agent-aware routing or unusual compliance demands it — budget 4–6 eng-months + permanent 0.1–0.25 FTE.</li>
+          <li><span class="kicker">5 · Revisit in-house build</span> only if agent-aware routing or unusual compliance demands it — budget ~2 eng-months to production + permanent 0.1–0.25 FTE.</li>
         </ul>
       </div>
       <div class="panel">
