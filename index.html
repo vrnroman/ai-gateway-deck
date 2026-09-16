@@ -173,8 +173,8 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
           <li><span class="kicker">AuthN/Z:</span> SSO/OIDC sign-in, per-user virtual keys, per-user <em>and</em> per-group spend + rate limits</li>
           <li><span class="kicker">Metrics:</span> usage &amp; cost per user/team/model, prompt capture — with retention controls (full prompt logs are a liability themselves)</li>
           <li><span class="kicker">Guardrails:</span> PII/secret redaction before egress — <span class="badge b-acc">in-process, &lt;200&nbsp;ms</span> comfortable next to multi-second model TTFT; LLM-judge guardrails are too slow for interactive CLI</li>
-          <li><span class="kicker">Failover:</span> Anthropic quota exhausted / 429 / 5xx → Bedrock/Vertex PAYG (Claude-family) automatic</li>
-          <li><span class="kicker">Budget lane:</span> route cost-insensitive work to Kimi / GLM / DeepSeek Flash tiers (10–30× cheaper than Claude)</li>
+          <li><span class="kicker">Teams-plan forwarding:</span> developers keep Anthropic Teams seats through the gateway — plain OAuth pass-through + guardrail scan, <em>no routing, no translation</em></li>
+          <li><span class="kicker">Budget lane:</span> route cost-insensitive work to Kimi / Grok / GLM via Copilot · Bedrock · Vertex (10× cheaper than Claude)</li>
         </ul>
       </div>
       <div class="panel">
@@ -220,7 +220,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
             <td data-label="License"><span class="badge b-acc">OURS</span> Go + Redis + Postgres</td>
             <td data-label="Price"><span class="kicker">10 mandays</span> build + <span class="kicker">10 mandays</span> rollout to all devs; production-hardened in ~2 eng-mo total; then 0.1–0.25 FTE</td>
             <td data-label="Self-host infra" class="tt">~$200–400/mo<span class="small">cheaper than any vendor at our scale</span></td>
-            <td data-label="Fit">Everything we need and nothing we don’t: per-user keys, budgets, PII/secrets guardrails, prompt logging, failover, Copilot/Bedrock/Vertex lanes. Full customization forever. Plan on slide 4</td>
+            <td data-label="Fit">Everything we need and nothing we don’t: per-user keys, budgets, PII/secrets guardrails, prompt logging, Teams-plan forwarding, Copilot/Bedrock/Vertex lanes. Full customization forever. Plan on slide 4</td>
             <td data-label="Security"><span class="badge b-neutral">OUR PROBLEM</span> small attack surface (one file, few deps), but we own CVEs, audits, key custody</td>
           </tr>
           <tr>
@@ -260,42 +260,95 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
 <!-- ================= SLIDE 3 ================= -->
 <section class="slide" id="s3" hidden>
   <div class="slide-inner">
-    <h2>Claude Code integration &amp; the budget-model lane</h2>
-    <p class="subtitle">What’s officially supported, and how to reach cheaper open-weight models without leaving our compliance boundary.</p>
+    <h2>Lanes &amp; integration</h2>
+    <p class="subtitle">Every path Claude Code traffic can take through the gateway — all inside the compliance boundary (Anthropic, Copilot, Bedrock, Vertex only).</p>
 
-    <div class="grid2">
+    <div class="grid3">
       <div class="panel">
-        <h3>Supported paths (Anthropic-documented)</h3>
-        <ul class="tight">
-          <li><span class="kicker">Claude apps gateway — built into the <code class="ic">claude</code> binary.</span> Browser SSO via your IdP, managed settings per IdP group, OTLP usage metrics, spend limits. Upstreams: Anthropic API, Bedrock, Vertex, Foundry. <span class="kicker">Evaluate first — auth + metrics for $0.</span></li>
-          <li><span class="kicker">Bring-your-own gateway</span> — compatibility protocol is documented; config is env vars pushed org-wide via MDM managed settings:</li>
+        <h3>How Claude Code connects</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li>Just env vars, pushed org-wide via MDM managed settings — zero per-dev setup:</li>
         </ul>
-        <div class="panel flush" style="margin-top:8px;box-shadow:none">
-          <div class="pad mono" style="font-size:12px;line-height:1.7">
+        <div class="panel flush" style="margin-top:6px;box-shadow:none">
+          <div class="pad mono" style="font-size:11.5px;line-height:1.7">
             ANTHROPIC_BASE_URL=https://gw.corp.com<br>
-            ANTHROPIC_AUTH_TOKEN=&lt;gateway-issued&gt;<br>
+            ANTHROPIC_AUTH_TOKEN=&lt;virtual-key&gt;<br>
             ENABLE_TOOL_SEARCH=true
           </div>
         </div>
-        <ul class="tight" style="margin-top:8px">
-          <li>Anthropic <span class="kicker">does not support routing Claude Code to non-Claude models</span> through any gateway — that lane is community practice (right column).</li>
+      </div>
+
+      <div class="panel">
+        <h3>Teams-plan lane (devs)</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li>Gateway sets <span class="kicker">no credential of its own</span> — the dev’s saved Claude login (OAuth) stays active and Teams limits apply through the gateway</li>
+          <li>Requirement: forward the OAuth capability in <code class="ic">anthropic-beta</code> headers, untouched</li>
+          <li>What the gateway adds here: <span class="kicker">guardrail scan + metrics only. No routing, no translation</span></li>
         </ul>
       </div>
+
       <div class="panel">
-        <h3>Budget lane — inside our compliance boundary</h3>
-        <ul class="tight">
-          <li>Constraint: only <span class="kicker">GitHub Copilot, AWS Bedrock, GCP Vertex</span> are approved upstreams. First-party Moonshot/z.ai/DeepSeek endpoints are out.</li>
-          <li><span class="badge b-ok">COPILOT — BEST</span> Natively hosts <span class="kicker">Kimi K3</span>, Kimi K2.7 Code, DeepSeek (older gen) — GitHub-managed on Azure, admin must enable open-weight models. Native Anthropic-compatible endpoint → Claude Code works through the gateway with no translation. <span class="kicker">LiteLLM has first-class Copilot support</span> (<code class="ic">github_copilot/</code> provider). ⚠ DeepSeek V4.1 Flash appears in Copilot only via BYOK → traffic goes direct to api.deepseek.com, outside the compliance boundary. Caveats: internal token flow (acceptable-use, not SLA'd API), extended thinking dropped, premium requests = AI Credits. Confirm plan coverage with GitHub.</li>
-          <li><span class="badge b-ok">GROK 4.6 — ACCEPTABLE ALT</span> $2/$6 per 1M (<200K ctx; ⚠ whole request reprices to $4/$12 past 200K — long Claude Code sessions cross this). ~7× cheaper than Opus, ~2× pricier than GLM 5.3, weaker than Claude at agentic coding. The one non-Chinese frontier-adjacent model available on <span class="kicker">all three approved vendors</span> (Copilot picker, Bedrock, Vertex) — zero procurement work.</li>
-          <li><span class="badge b-warn">BEDROCK</span> serverless PAYG, but <span class="kicker">several generations late on open-weight models</span> (GLM 4.7 Flash, DeepSeek V3.2, Kimi K2.5 — vs GLM 5.3 / V4.1 / K3 current). Clean metered API on the AWS bill; acceptable for unattended agents that don’t need frontier quality.</li>
-          <li><span class="badge b-warn">VERTEX</span> Qwen3-Coder-480B / DeepSeek V3.1 as managed PAYG (also stale); anything newer = GPU self-deploy (ruled out). Its real card is <span class="kicker">Gemini Flash — very cheap, but weak at agentic coding</span>; last-resort lane.</li>
-          <li><span class="kicker">Universal caveats for non-Claude lanes:</span> prompt-cache economics, <code class="ic">/cost</code> accuracy, thinking blocks. Opt-in budget lane, never silent default.</li>
+        <h3>Built-in apps gateway (free)</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li>Anthropic ships a gateway <span class="kicker">inside the <code class="ic">claude</code> binary</span>: browser SSO via our IdP, managed settings per group, OTLP metrics</li>
+          <li>Evaluate in week 0 — can cover attribution while our proxy ships</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>⚠ Not allowed: OAuth pooling</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li>Sharing one Pro/Max subscription across engineers is ToS-banned and <span class="kicker">technically enforced</span> since early 2026</li>
+          <li>Teams seats = per-person, forwarded 1:1. Agents = API keys, never OAuth</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>Copilot lane — Kimi K3 <span class="badge b-ok">BEST BUDGET</span></h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li>Copilot natively hosts <span class="kicker">Kimi K3</span>, K2.7 Code, DeepSeek (older) on Azure; admin enables open-weight models</li>
+          <li>Native Anthropic-compatible endpoint → no translation needed</li>
+          <li>Caveats: internal token flow (acceptable-use, not SLA’d); thinking blocks dropped; premium requests = AI Credits</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>Grok 4.6 lane <span class="badge b-ok">SANCTIONED ALT</span></h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li><span class="kicker">Available on all three approved vendors</span> (Copilot picker, Bedrock, Vertex) — zero procurement</li>
+          <li>$2/$6 per 1M — ~7× cheaper than Opus; ⚠ prompts &gt;200K reprice the whole request to $4/$12 (long sessions cross this)</li>
+          <li>Weaker than Claude at agentic coding — budget lane, not premium</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>Bedrock lane</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li>Serverless PAYG on the AWS bill; <span class="kicker">several generations late</span> on open-weight (GLM 4.7, DeepSeek V3.2, Kimi K2.5)</li>
+          <li>Right for unattended agents that don’t need frontier quality</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>Vertex lane</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li>Managed PAYG: Qwen3-Coder, DeepSeek V3.1 (stale); anything newer = GPU self-deploy (ruled out)</li>
+          <li>Real card: <span class="kicker">Gemini Flash — very cheap, weak at agentic coding</span>; last-resort lane</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>⚠ Non-Claude lane caveats</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li>Prompt-cache economics, <code class="ic">/cost</code> accuracy, thinking blocks degrade behind any non-Claude model</li>
+          <li>Always opt-in, never the silent default — test <code class="ic">/cost</code> per lane</li>
+          <li>Anthropic doesn’t support non-Claude routing; it’s community practice</li>
         </ul>
       </div>
     </div>
 
     <div class="callout">
-      <span class="kicker">Pitch line:</span> premium lane = Claude (supported path, gateway → Anthropic API / Bedrock PAYG failover); budget lane = Kimi K3 / GLM / DeepSeek via Copilot or Bedrock — one auth, one budget system, one audit trail; policy decides who gets which lane.
+      <span class="kicker">Pitch line:</span> one gateway, one auth, one budget system, one audit trail — Teams seats forwarded untouched for devs, API-billed lanes for agents, budget models (Kimi K3 / Grok 4.6) opt-in for cost-sensitive work.
     </div>
   </div>
 </section>
@@ -330,7 +383,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
           <li><span class="kicker">2d</span> — auth: SSO-issued JWT → per-user/agent virtual keys; issuance + revocation API</li>
           <li><span class="kicker">1d</span> — budgets: Redis token-bucket rate limits + daily/monthly spend caps per user &amp; group (429 with a clear message)</li>
           <li><span class="kicker">2d</span> — metering: per-model price table, cached-token pricing, cost events → Postgres</li>
-          <li><span class="kicker">1d</span> — failover: Anthropic → Bedrock on 429/5xx/timeout, capped retries; premium/budget lane routing</li>
+          <li><span class="kicker">1d</span> — lanes: Teams-plan OAuth forwarding (guardrail-only passthrough) + premium/budget lane routing</li>
           <li><span class="kicker">1d</span> — guardrails L1 (in-process Go, ~2–10&nbsp;ms): <span class="kicker">Gitleaks <code class="ic">detect</code> package as a library</span> (MIT, keyword-prefiltered regex + entropy) for secrets + tuned regex for structured PII (email/phone/SSN/CC+Luhn/IP) → typed placeholders <code class="ic">[EMAIL_1]</code></li>
           <li><span class="kicker">1d</span> — admin: minimal API/UI for keys, budgets, spend per user/team</li>
         </ul>
@@ -388,7 +441,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
       <div class="panel">
         <h3>Model lanes &amp; fallback triggers</h3>
         <ul class="tight small" style="color:var(--ink)">
-          <li><span class="kicker">Premium lane:</span> Claude via Anthropic API, failover to Bedrock PAYG — the supported path</li>
+          <li><span class="kicker">Premium lane:</span> Claude via Anthropic API; devs on Teams-plan seats forwarded as-is (guardrail-only)</li>
           <li><span class="kicker">Budget lanes:</span> Kimi K3 via Copilot (latest open-weight, in-boundary) · Grok 4.6 as the sanctioned alternative on all three approved vendors · Bedrock GLM/DeepSeek for unattended agents</li>
           <li><span class="kicker">Interim freebie:</span> Anthropic’s built-in Claude apps gateway (SSO, OTLP metrics) can cover attribution while our proxy ships — evaluate in week 0</li>
           <li><span class="kicker">Adopt a vendor instead if:</span> the team can’t hold 0.1–0.25 FTE oncall · an auditor demands a SOC 2’d intermediary · feature drift (SCIM, semantic cache) outgrows the 20-manday scope. Then: Bifrost Enterprise quote first; TrueFoundry if SaaS is acceptable; LiteLLM only pinned + isolated</li>
