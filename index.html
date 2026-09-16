@@ -206,7 +206,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
 <section class="slide" id="s2" hidden>
   <div class="slide-inner">
     <h2>Top 3 solutions vs. in-house build</h2>
-    <p class="subtitle">Trimmed from a 9-tool landscape (dropped: Portkey — Palo Alto acquisition + log-based pricing that gets unpredictable at our volume; Kong — AI plugins Enterprise-only, $30–120k/yr; Cloudflare — no per-user budgets; TensorZero — dead; Helicone — maintenance mode).</p>
+    <p class="subtitle">Three credible options plus an in-house build, priced at our scale (20 devs × $4k/mo ≈ $80k/mo in tokens).</p>
 
     <div class="tablewrap">
       <table>
@@ -228,7 +228,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
             <td data-label="License"><span class="badge b-ok">OPEN SOURCE</span> MIT, Python + Enterprise license</td>
             <td data-label="Price">OSS free (budgets, failover, translation, /v1/messages included). Enterprise ≈ <span class="kicker">$30k/yr</span> (est.) for SSO &gt;5 users, RBAC, audit</td>
             <td data-label="Self-host infra" class="tt">~$300–600/mo<span class="small">Python: bigger VMs</span></td>
-            <td data-label="Fit">Most mature + broadest features, 57k★, category default. PII via Presidio hooks (slower than Bifrost). Rust rewrite in progress</td>
+            <td data-label="Fit">Most mature + broadest features, 57k★, category default. <span class="kicker">Only gateway with first-class GitHub Copilot provider</span> (budget lane, slide 3). PII via Presidio hooks (slower than Bifrost). Rust rewrite in progress</td>
             <td data-label="Security"><span class="badge b-bad">BAD</span> Mar 2026 PyPI supply-chain breach (TeamPCP; NVIDIA, Deloitte hit); 3× actively-exploited CVEs 2026; SOC 2 badge from fabricated-audit vendor. Use only pinned + hash-verified + isolated</td>
           </tr>
           <tr>
@@ -242,7 +242,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
           <tr>
             <td class="rowhead">In-house build</td>
             <td data-label="License"><span class="badge b-neutral">YOURS</span> FastAPI/Go + Redis + Postgres</td>
-            <td data-label="Price">MVP <span class="kicker">3–6 eng-wk</span>; production <span class="kicker">4–6 eng-mo</span> + 0.1–0.25 FTE forever</td>
+            <td data-label="Price">Demo-grade MVP in days with AI-assisted dev; trustworthy MVP <span class="kicker">2–6 eng-wk</span>; production <span class="kicker">4–6 eng-mo</span> + 0.1–0.25 FTE forever</td>
             <td data-label="Self-host infra" class="tt">~$300–800/mo<span class="small">incl. log storage</span></td>
             <td data-label="Fit">Day-1 wins are real (slide 4). Durable tax: per-model price tables, streaming cost accounting, &lt;20ms PII at RPS, SSO, audit, provider churn oncall</td>
             <td data-label="Security"><span class="badge b-neutral">YOUR PROBLEM</span> you own CVEs, audits, key custody</td>
@@ -261,7 +261,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
 <section class="slide" id="s3" hidden>
   <div class="slide-inner">
     <h2>Claude Code integration &amp; the budget-model lane</h2>
-    <p class="subtitle">What’s officially supported, and where the latest Chinese models actually live (spoiler: not Bedrock/Vertex).</p>
+    <p class="subtitle">What’s officially supported, and how to reach cheaper open-weight models without leaving our compliance boundary.</p>
 
     <div class="grid2">
       <div class="panel">
@@ -282,19 +282,19 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
         </ul>
       </div>
       <div class="panel">
-        <h3>Budget lane: latest Chinese models, pay-per-token</h3>
+        <h3>Budget lane — inside our compliance boundary</h3>
         <ul class="tight">
-          <li><span class="badge b-bad">NOT BEDROCK/VERTEX</span> Bedrock is 1–2 generations stale (Kimi K2.5, GLM 4.7, DeepSeek V3.2); Vertex makes you self-deploy on GPU-hours. Dead end for “latest + pay per token.”</li>
-          <li><span class="badge b-ok">FIRST-PARTY APIs</span> Moonshot (<code class="ic">api.moonshot.ai</code>), z.ai (<code class="ic">api.z.ai</code>), DeepSeek all sell pay-per-token <em>and expose Anthropic-compatible endpoints natively</em> — Claude Code works through the gateway with no translation layer at all.</li>
-          <li><span class="kicker">Prices:</span> GLM 5.3 Flash <span class="mono">$0.15/$0.50</span> · DeepSeek V4 Flash <span class="mono">$0.22–0.44/$0.66–1.32</span> per 1M tok (in/out) — 10–30× cheaper than Claude; both strong at coding. Flagships (Kimi K3 $3/$15) are Sonnet-priced — no savings there.</li>
-          <li><span class="badge b-warn">DATA RESIDENCY</span> first-party = prompts go to Chinese providers. US-hosted alternative: Fireworks/OpenRouter serve the same open weights at ~+50% premium. Gateway makes this a per-team policy toggle.</li>
-          <li><span class="kicker">Degrades behind any non-Claude lane:</span> prompt caching economics, <code class="ic">/cost</code> accuracy, thinking blocks, tool-call edge cases. Offer as opt-in budget lane, never silent default.</li>
+          <li>Constraint: only <span class="kicker">GitHub Copilot, AWS Bedrock, GCP Vertex</span> are approved upstreams. First-party Moonshot/z.ai/DeepSeek endpoints are out.</li>
+          <li><span class="badge b-ok">COPILOT — BEST</span> Picker includes <span class="kicker">Kimi K3</span> + Kimi K2.7 Code + DeepSeek (open-weight models need admin enablement). Native Anthropic-compatible endpoint → Claude Code works through the gateway with no translation. <span class="kicker">LiteLLM has first-class Copilot support</span> (<code class="ic">github_copilot/</code> provider); other gateways = generic OpenAI-compatible route, unverified. Caveats: internal token flow (acceptable-use, not SLA'd API), extended thinking dropped, premium requests = AI Credits. Confirm plan coverage with GitHub.</li>
+          <li><span class="badge b-ok">BEDROCK</span> serverless PAYG: GLM 4.7 Flash, DeepSeek V3.2, Kimi K2.5, Qwen3 Coder Next — ~10× cheaper than Claude, one generation stale. Clean metered API, right lane for unattended agents (no seat semantics).</li>
+          <li><span class="badge b-warn">VERTEX</span> Qwen3-Coder-480B / DeepSeek V3.1 as managed PAYG; anything newer = GPU self-deploy (ruled out).</li>
+          <li><span class="kicker">Universal caveats for non-Claude lanes:</span> prompt-cache economics, <code class="ic">/cost</code> accuracy, thinking blocks. Opt-in budget lane, never silent default.</li>
         </ul>
       </div>
     </div>
 
     <div class="callout">
-      <span class="kicker">Pitch line:</span> premium lane = Claude (supported path, gateway → Anthropic/Bedrock PAYG failover); budget lane = Flash-tier Chinese models via first-party endpoints through the same gateway — one auth, one budget system, one audit trail, policy decides who gets which lane.
+      <span class="kicker">Pitch line:</span> premium lane = Claude (supported path, gateway → Anthropic API / Bedrock PAYG failover); budget lane = Kimi K3 / GLM / DeepSeek via Copilot or Bedrock — one auth, one budget system, one audit trail; policy decides who gets which lane.
     </div>
   </div>
 </section>
@@ -308,7 +308,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
     <div class="grid3" style="margin-bottom:16px">
       <div class="panel stat"><span class="n">$0</span><span class="l">week 0: Anthropic’s built-in Claude apps gateway — SSO, per-group managed settings, OTLP metrics. May cover auth + attribution alone</span></div>
       <div class="panel stat"><span class="n">~$200<span style="font-size:13px">/mo</span></span><span class="l">Bifrost OSS self-hosted on GCP/AWS (0.25% of token spend) — or $0 infra + $499/mo TrueFoundry SaaS if you want zero ops</span></div>
-      <div class="panel stat"><span class="n">>4–6 <span style="font-size:13px">mo</span></span><span class="l">what an in-house production build costs before it matches the above — plus 0.1–0.25 FTE forever</span></div>
+      <div class="panel stat"><span class="n">>4–6 <span style="font-size:13px">mo</span></span><span class="l">for an in-house build to match the above in production. A 5-person Claude Code sprint gets a demo in 2 days — the gap to production is correctness and ops (silent mis-metering, HA, audit), not typing speed. Plus 0.1–0.25 FTE forever</span></div>
     </div>
 
     <div class="grid2">
@@ -316,8 +316,8 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
         <h3>Phased plan</h3>
         <ul class="tight small" style="color:var(--ink)">
           <li><span class="kicker">1 · Week 0:</span> built-in Claude apps gateway for SSO + attribution + metrics. Free, supported, zero vendor review.</li>
-          <li><span class="kicker">2 · Core gateway: Bifrost OSS self-host</span> (clean security record, µs-scale in-process PII, translation core feature). Pay Enterprise only when you need OIDC/SCIM + the Anthropic-passthrough route — likely within a quarter, so get the quote early. <span class="kicker">Fallback:</span> LiteLLM OSS if you need its breadth — pinned + hash-verified + isolated only. <span class="kicker">No-ops option:</span> TrueFoundry SaaS $499/mo.</li>
-          <li><span class="kicker">3 · Budget lane:</span> z.ai + DeepSeek first-party keys in the gateway; GLM 5.3 Flash / DeepSeek V4 Flash as opt-in models; Fireworks route for teams with China-data restrictions.</li>
+          <li><span class="kicker">2 · Core gateway: Bifrost OSS self-host</span> (clean security record, µs-scale in-process PII, translation core feature). Pay Enterprise only when you need OIDC/SCIM + the Anthropic-passthrough route. <span class="kicker">Swing factor:</span> if the Copilot budget lane is a day-1 requirement, LiteLLM is the pragmatic pick (first-class Copilot provider) — but only pinned + hash-verified + network-isolated. <span class="kicker">No-ops option:</span> TrueFoundry SaaS $499/mo.</li>
+          <li><span class="kicker">3 · Budget lane:</span> GitHub Copilot upstream (Kimi K3, Kimi K2.7 Code, DeepSeek) — LiteLLM has a first-class Copilot provider; admin must enable open-weight models. Bedrock PAYG (GLM 4.7 Flash, DeepSeek V3.2) as the metered lane for unattended agents.</li>
           <li><span class="kicker">4 · Failover:</span> Anthropic → Bedrock PAYG (Claude-family continuity). OpenRouter only as emergency backstop — its 5% fee ≈ $4k/mo at our scale.</li>
           <li><span class="kicker">5 · Revisit in-house build</span> only if agent-aware routing or unusual compliance demands it — budget 4–6 eng-months + permanent 0.1–0.25 FTE.</li>
         </ul>
