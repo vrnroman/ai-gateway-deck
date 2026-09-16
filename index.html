@@ -101,18 +101,39 @@ ul.tight li::marker{color:var(--accent)}
 .b-neutral{background:var(--chip);color:var(--muted)}
 .b-acc{background:var(--accent-soft);color:var(--accent)}
 
-.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:var(--shadow)}
-table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:820px}
+.tablewrap{border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+table{border-collapse:collapse;width:100%;font-size:12px;table-layout:fixed}
+col.c-opt{width:8%}
+col.c-lic{width:13%}
+col.c-price{width:19%}
+col.c-infra{width:11%}
+col.c-fit{width:27%}
+col.c-sec{width:22%}
 th{
   font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;
   letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
   text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);
-  background:var(--surface-2);white-space:nowrap;
+  background:var(--surface-2);
 }
-td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top;overflow-wrap:break-word}
 tr:last-child td{border-bottom:none}
-td.tt{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
-.rowhead{font-weight:600;white-space:nowrap}
+td.tt{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+td.tt .small{display:block;font-family:"IBM Plex Sans",sans-serif}
+.rowhead{font-weight:600}
+@media (max-width:720px){
+  table,thead,tbody,tr,td{display:block}
+  thead{display:none}
+  tr{border-bottom:1px solid var(--line);padding:8px 0}
+  tr:last-child{border-bottom:none}
+  td{border-bottom:none;padding:4px 12px}
+  td::before{
+    content:attr(data-label);
+    display:block;font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:1px;
+  }
+  td.rowhead{font-size:14px;padding-top:6px}
+  td.rowhead::before{content:none}
+}
 
 .callout{
   border-left:3px solid var(--accent);background:var(--accent-soft);
@@ -189,41 +210,42 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
 
     <div class="tablewrap">
       <table>
+        <colgroup><col class="c-opt"><col class="c-lic"><col class="c-price"><col class="c-infra"><col class="c-fit"><col class="c-sec"></colgroup>
         <thead><tr>
-          <th>Option</th><th>License / model</th><th>Price</th><th>Self-host infra<br>(GCP/AWS, HA pair)</th><th>Fit for requirements</th><th>Security record</th>
+          <th>Option</th><th>License</th><th>Price</th><th>Self-host infra</th><th>Fit for requirements</th><th>Security record</th>
         </tr></thead>
         <tbody>
           <tr>
             <td class="rowhead">Bifrost</td>
-            <td><span class="badge b-ok">OPEN SOURCE</span> Apache 2.0, Go + paid Enterprise</td>
-            <td>OSS free. Enterprise (SSO/OIDC+SCIM, Anthropic-passthrough route, vault keys, audit) = quote-only</td>
-            <td class="tt">~$150–300/mo<br><span class="small">2× small VMs + managed PG + Redis</span></td>
-            <td>Fastest (µs-scale in-process PII via regex/Gitleaks — meets &lt;20ms bar), translation Anthropic↔Kimi/GLM/Gemini is a core feature, virtual keys + hierarchical budgets. ⚠ native /v1/messages passthrough is Enterprise-only</td>
-            <td><span class="badge b-ok">CLEAN</span> one SSRF CVE, fixed fast</td>
+            <td data-label="License"><span class="badge b-ok">OPEN SOURCE</span> Apache 2.0, Go + paid Enterprise</td>
+            <td data-label="Price">OSS free. Enterprise (SSO/SCIM, Anthropic passthrough, vault keys, audit) = quote-only</td>
+            <td data-label="Self-host infra" class="tt">~$150–300/mo<span class="small">2 small VMs + PG + Redis</span></td>
+            <td data-label="Fit">Fastest; in-process PII (regex/Gitleaks) meets the &lt;20ms bar. Anthropic↔Kimi/GLM/Gemini translation is a core feature. Virtual keys + hierarchical budgets. ⚠ /v1/messages passthrough = Enterprise</td>
+            <td data-label="Security"><span class="badge b-ok">CLEAN</span> one SSRF CVE, fixed fast</td>
           </tr>
           <tr>
             <td class="rowhead">LiteLLM</td>
-            <td><span class="badge b-ok">OPEN SOURCE</span> MIT, Python + Enterprise license on same image</td>
-            <td>OSS free (budgets, failover, translation, /v1/messages all included). Enterprise ≈ <span class="kicker">$30k/yr</span> (est., quote-only) for SSO &gt;5 users, RBAC, SCIM, audit, guardrail suite</td>
-            <td class="tt">~$300–600/mo<br><span class="small">Python: bigger VMs, same PG/Redis</span></td>
-            <td>Most mature + broadest feature set, 57k★, category default. PII via Presidio hooks (Python — slower than Bifrost). Rust rewrite in progress (Dec 2026)</td>
-            <td><span class="badge b-bad">BAD</span> Mar 2026 PyPI supply-chain breach (TeamPCP; NVIDIA, Deloitte among victims); 3× CISA-KEV exploited CVEs in 2026; historic default <code class="ic">sk-1234</code> key; SOC 2 badge came from Delve (fabricated-audit scandal), re-certifying via Vanta. Usable only pinned + hash-verified + network-isolated</td>
+            <td data-label="License"><span class="badge b-ok">OPEN SOURCE</span> MIT, Python + Enterprise license</td>
+            <td data-label="Price">OSS free (budgets, failover, translation, /v1/messages included). Enterprise ≈ <span class="kicker">$30k/yr</span> (est.) for SSO &gt;5 users, RBAC, audit</td>
+            <td data-label="Self-host infra" class="tt">~$300–600/mo<span class="small">Python: bigger VMs</span></td>
+            <td data-label="Fit">Most mature + broadest features, 57k★, category default. PII via Presidio hooks (slower than Bifrost). Rust rewrite in progress</td>
+            <td data-label="Security"><span class="badge b-bad">BAD</span> Mar 2026 PyPI supply-chain breach (TeamPCP; NVIDIA, Deloitte hit); 3× actively-exploited CVEs 2026; SOC 2 badge from fabricated-audit vendor. Use only pinned + hash-verified + isolated</td>
           </tr>
           <tr>
             <td class="rowhead">TrueFoundry</td>
-            <td><span class="badge b-warn">PROPRIETARY</span> SaaS / VPC / on-prem / air-gapped</td>
-            <td>SaaS: free 50k req/mo → <span class="kicker">$499/mo</span> Pro (1M req, ~20 heavy devs) → <span class="kicker">$2,999/mo</span> Pro Plus; Enterprise custom. Self-host gateway plane ≈ $600–1,000/mo infra + license</td>
-            <td class="tt">SaaS: $0 infra<br><span class="small">VPC option: ~$600–1k/mo</span></td>
-            <td>Most Claude-Code-focused: documented setup incl. MDM-managed settings, RBAC + per-dev/team budgets, built-in PII + injection guardrails (~3–4ms claimed), “Virtual Models” serve GPT/Gemini behind Anthropic protocol</td>
-            <td><span class="badge b-neutral">NO PUBLIC ISSUES</span> closed source — verify SOC 2 with the named auditor</td>
+            <td data-label="License"><span class="badge b-warn">PROPRIETARY</span> SaaS / VPC / air-gapped</td>
+            <td data-label="Price">SaaS <span class="kicker">$499/mo</span> Pro (1M req ≈ 20 heavy devs) → <span class="kicker">$2,999/mo</span> Pro Plus; Enterprise custom</td>
+            <td data-label="Self-host infra" class="tt">$0 (SaaS)<span class="small">VPC ~$600–1k/mo</span></td>
+            <td data-label="Fit">Most Claude-Code-focused: MDM-managed settings, RBAC + budgets, built-in PII (~3–4ms claimed), GPT/Gemini behind Anthropic protocol</td>
+            <td data-label="Security"><span class="badge b-neutral">NO PUBLIC ISSUES</span> closed source — verify SOC 2 with named auditor</td>
           </tr>
           <tr>
             <td class="rowhead">In-house build</td>
-            <td><span class="badge b-neutral">YOURS</span> e.g. FastAPI/Go + Redis + Postgres</td>
-            <td>MVP <span class="kicker">3–6 eng-weeks</span>; production-grade <span class="kicker">4–6 eng-months</span> + <span class="kicker">0.1–0.25 FTE forever</span> (~$30–80k/yr loaded)</td>
-            <td class="tt">~$300–800/mo<br><span class="small">incl. log storage after tiering/sampling</span></td>
-            <td>Day-1 wins are real (§4); the durable tax is price tables per model, streaming cost accounting, &lt;20ms PII at RPS, SSO groups, tamper-evident audit, provider API churn oncall</td>
-            <td><span class="badge b-neutral">YOUR PROBLEM</span> you own CVEs, audits, key custody</td>
+            <td data-label="License"><span class="badge b-neutral">YOURS</span> FastAPI/Go + Redis + Postgres</td>
+            <td data-label="Price">MVP <span class="kicker">3–6 eng-wk</span>; production <span class="kicker">4–6 eng-mo</span> + 0.1–0.25 FTE forever</td>
+            <td data-label="Self-host infra" class="tt">~$300–800/mo<span class="small">incl. log storage</span></td>
+            <td data-label="Fit">Day-1 wins are real (slide 4). Durable tax: per-model price tables, streaming cost accounting, &lt;20ms PII at RPS, SSO, audit, provider churn oncall</td>
+            <td data-label="Security"><span class="badge b-neutral">YOUR PROBLEM</span> you own CVEs, audits, key custody</td>
           </tr>
         </tbody>
       </table>
