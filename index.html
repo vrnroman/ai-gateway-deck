@@ -1,0 +1,434 @@
+<title>AI Gateway Decision Deck</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#F5F2EA;
+  --surface:#FFFFFF;
+  --surface-2:#EFEBE0;
+  --ink:#1B2432;
+  --muted:#5A6270;
+  --line:#DAD4C4;
+  --accent:#C8500A;
+  --accent-soft:#F7E3D3;
+  --ok:#22794B;
+  --warn:#9A6A08;
+  --bad:#B3271E;
+  --chip:#EAE5D8;
+  --shadow:0 1px 2px rgba(27,36,50,.06),0 4px 14px rgba(27,36,50,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#12141A;
+    --surface:#1B1F27;
+    --surface-2:#22262F;
+    --ink:#E8E5DB;
+    --muted:#98A0AD;
+    --line:#31363F;
+    --accent:#F08A3C;
+    --accent-soft:#3A2A1C;
+    --ok:#4CC38A;
+    --warn:#E5B545;
+    --bad:#F07060;
+    --chip:#262B34;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#12141A;
+  --surface:#1B1F27;
+  --surface-2:#22262F;
+  --ink:#E8E5DB;
+  --muted:#98A0AD;
+  --line:#31363F;
+  --accent:#F08A3C;
+  --accent-soft:#3A2A1C;
+  --ok:#4CC38A;
+  --warn:#E5B545;
+  --bad:#F07060;
+  --chip:#262B34;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  display:flex;
+  flex-direction:column;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+
+/* ---------- chrome ---------- */
+header{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 20px;
+  border-bottom:1px solid var(--line);
+  flex:none;
+}
+header .brand{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+header h1{font-size:15px;font-weight:600;margin:0;flex:1;text-wrap:balance}
+header .counter{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+main{flex:1;min-height:0;position:relative}
+.slide{
+  position:absolute;inset:0;
+  overflow-y:auto;
+  padding:22px 20px 28px;
+}
+.slide-inner{max-width:1060px;margin:0 auto}
+
+nav{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 20px calc(10px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--line);
+  flex:none;
+}
+nav button{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+  padding:7px 14px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);cursor:pointer;
+}
+nav button:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+nav button:disabled{opacity:.35;cursor:default}
+nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dots{display:flex;gap:8px}
+.dots button{
+  width:9px;height:9px;padding:0;border-radius:50%;border:none;
+  background:var(--line);cursor:pointer;
+}
+.dots button[aria-current="true"]{background:var(--accent)}
+
+/* ---------- slide content ---------- */
+h2{font-size:24px;font-weight:700;margin:0 0 2px;letter-spacing:-.01em;text-wrap:balance}
+.subtitle{font-size:13px;color:var(--muted);margin:0 0 18px}
+h3{
+  font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
+  margin:0 0 8px;
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+
+.panel{
+  background:var(--surface);border:1px solid var(--line);border-radius:8px;
+  padding:14px 16px;box-shadow:var(--shadow);
+}
+.panel.flush{padding:0;overflow:hidden}
+.panel .pad{padding:12px 16px}
+ul.tight{margin:0;padding-left:18px}
+ul.tight li{margin:5px 0}
+ul.tight li::marker{color:var(--accent)}
+.small{font-size:12.5px;color:var(--muted)}
+.kicker{font-weight:600}
+.badge{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;
+  padding:2px 7px;border-radius:4px;letter-spacing:.04em;white-space:nowrap;
+}
+.b-ok{background:var(--chip);color:var(--ok)}
+.b-warn{background:var(--chip);color:var(--warn)}
+.b-bad{background:var(--chip);color:var(--bad)}
+.b-neutral{background:var(--chip);color:var(--muted)}
+.b-acc{background:var(--accent-soft);color:var(--accent)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:760px}
+th{
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);
+  background:var(--surface-2);white-space:nowrap;
+}
+td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.tt{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rowhead{font-weight:600;white-space:nowrap}
+
+.callout{
+  border-left:3px solid var(--accent);background:var(--accent-soft);
+  padding:10px 14px;border-radius:0 8px 8px 0;font-size:13px;margin:14px 0;
+}
+.callout.danger{border-left-color:var(--bad)}
+.callout.danger{background:var(--chip)}
+
+.src{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);margin-top:14px}
+.src a{color:var(--muted)}
+.src a:hover{color:var(--accent)}
+
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .n{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.stat .l{font-size:12px;color:var(--muted)}
+
+.flow{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-family:"IBM Plex Mono",monospace;font-size:12px;margin:8px 0 0;
+}
+.flow .node{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:4px 10px}
+.flow .arr{color:var(--accent);font-weight:600}
+
+code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--chip);padding:1px 5px;border-radius:4px}
+
+@media (prefers-reduced-motion:no-preference){
+  .slide{transition:opacity .18s ease}
+}
+</style>
+
+<header>
+  <span class="brand">ENG-INFRA</span>
+  <h1>AI Gateway for Claude Code — decision deck</h1>
+  <span class="counter" id="counter">1 / 4</span>
+</header>
+
+<main>
+<!-- ================= SLIDE 1 ================= -->
+<section class="slide" id="s1">
+  <div class="slide-inner">
+    <h2>Requirements</h2>
+    <p class="subtitle">All Claude Code traffic (engineers now, unattended agents later) routed through one gateway instead of directly to Anthropic.</p>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Core — from your list</h3>
+        <ul class="tight">
+          <li><span class="kicker">AuthN/Z:</span> SSO/OIDC sign-in, per-user virtual keys, per-user <em>and</em> per-group spend + rate limits</li>
+          <li><span class="kicker">Metrics:</span> usage &amp; cost per user/team/model, prompt capture — with retention controls, because full prompt logs become a liability themselves</li>
+          <li><span class="kicker">Guardrails:</span> PII/secret detection + redaction before egress — <span class="badge b-acc">must be in-process, &lt;20&nbsp;ms</span> LLM-judge guardrails are too slow for interactive CLI</li>
+          <li><span class="kicker">Failover:</span> Anthropic quota exhausted / 429 / 5xx → Bedrock or Vertex PAYG, automatic</li>
+          <li><span class="kicker">Translation:</span> serve Claude Code (Anthropic Messages format) from Kimi / GLM / Gemini backends</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Gaps worth adding — “something else”</h3>
+        <ul class="tight">
+          <li><span class="kicker">Prompt-cache preservation</span> — a proxy that strips <code class="ic">cache_control</code> markers silently re-bills the whole conversation as uncached input every turn. Biggest hidden cost driver.</li>
+          <li><span class="kicker">Streaming (SSE) passthrough</span> with usage accounting from stream-end events — mid-stream budget kills are painful</li>
+          <li><span class="kicker">Key custody:</span> upstream provider keys in a vault, rotation, one engineer leaves → revoke one virtual key, not the shared org key</li>
+          <li><span class="kicker">Agent identities:</span> unattended agents get separate keys, tighter budgets, own audit trail</li>
+          <li><span class="kicker">Audit logs → SIEM</span>, log encryption at rest, configurable retention TTL</li>
+          <li><span class="kicker">Latency budget:</span> &lt;50&nbsp;ms added, HA — gateway down means every engineer blocked</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout danger">
+      <span class="kicker">“Share subscriptions” needs re-framing.</span>
+      Pooling Pro/Max OAuth quotas across engineers through a gateway is a ToS violation — and Anthropic has <em>technically enforced</em> it since early 2026 (server-side rejection of subscription tokens in third-party contexts). The legitimate patterns: <span class="kicker">API keys with Console billing</span>, <span class="kicker">Enterprise managed seats</span>, or <span class="kicker">Bedrock/Vertex billing</span>. The gateway then gives you the “shared pool” feeling via org-level keys + per-user attribution.
+    </div>
+
+    <div class="flow">
+      <span class="node">Claude Code / agents</span><span class="arr">→</span>
+      <span class="node">gateway: auth · budget · PII scan · log</span><span class="arr">→</span>
+      <span class="node">Anthropic API</span><span class="arr">/ fallback →</span>
+      <span class="node">Bedrock · Vertex · Kimi · GLM</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 2 ================= -->
+<section class="slide" id="s2" hidden>
+  <div class="slide-inner">
+    <h2>Tool landscape &amp; security track record</h2>
+    <p class="subtitle">✅ full&nbsp;&nbsp;🟡 partial / enterprise-gated&nbsp;&nbsp;❌ no. Security column is the tiebreaker — a gateway holds all your provider keys and full prompt logs.</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th>Tool</th><th>Model</th><th>/v1/messages<br>native</th><th>SSO + per-user<br>/group budgets</th><th>Fast PII<br>guardrails</th><th>Failover</th><th>Translate to<br>Kimi/GLM/Gemini</th><th>Security record</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="rowhead">LiteLLM</td><td>OSS (MIT) + Ent. license</td>
+            <td>✅</td><td>✅ OSS budgets; SSO/RBAC = Ent.</td><td>🟡 Presidio hooks (Python)</td><td>✅</td><td>✅</td>
+            <td><span class="badge b-bad">BAD</span> see below</td>
+          </tr>
+          <tr>
+            <td class="rowhead">Bifrost</td><td>OSS (Apache 2.0), Go</td>
+            <td>🟡 passthrough = Ent.</td><td>🟡 mostly Ent.</td><td>✅ in-process regex/Gitleaks, µs-scale</td><td>✅ adaptive</td><td>✅ core feature</td>
+            <td><span class="badge b-ok">CLEAN</span> 1 SSRF CVE, fast fix</td>
+          </tr>
+          <tr>
+            <td class="rowhead">Portkey</td><td>OSS gateway + SaaS (Palo Alto N.)</td>
+            <td>✅</td><td>✅ virtual keys; SSO = Ent.</td><td>✅ 50+ sync guardrails</td><td>✅</td><td>✅</td>
+            <td><span class="badge b-warn">MIXED</span> SSRF CVE + incomplete fix</td>
+          </tr>
+          <tr>
+            <td class="rowhead">TrueFoundry</td><td>Proprietary, SaaS/VPC/air-gap</td>
+            <td>✅</td><td>✅ RBAC + budgets + MDM</td><td>✅ ~3–4&nbsp;ms claimed</td><td>✅</td><td>✅ “Virtual Models”</td>
+            <td><span class="badge b-neutral">NO PUBLIC ISSUES</span> closed source</td>
+          </tr>
+          <tr>
+            <td class="rowhead">Kong AI GW</td><td>OSS core; AI plugins Ent.-only</td>
+            <td>✅</td><td>🟡 consumers/groups + OIDC</td><td>🟡 PII plugin = Ent.</td><td>✅</td><td>🟡 Anthropic-family only</td>
+            <td><span class="badge b-ok">CLEAN</span> mature patch process</td>
+          </tr>
+          <tr>
+            <td class="rowhead">Cloudflare AI GW</td><td>Hosted SaaS only</td>
+            <td>🟡 proxy, no translation</td><td>❌ account-level only</td><td>✅ free edge DLP</td><td>🟡</td><td>❌</td>
+            <td><span class="badge b-ok">CLEAN</span> but logs full payloads</td>
+          </tr>
+          <tr>
+            <td class="rowhead">OpenRouter</td><td>Hosted only</td>
+            <td>🟡/❌</td><td>🟡 workspaces; SSO = Ent.</td><td>❌</td><td>✅ excellent</td><td>❌</td>
+            <td><span class="badge b-neutral">CLEAN</span> key custody delegated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="panel">
+        <h3>LiteLLM — what actually happened</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li><span class="kicker">Mar 24 2026 — PyPI supply-chain breach</span> (TeamPCP): poisoned <code class="ic">litellm</code> 1.82.7/1.82.8, credential stealer + systemd backdoor, ~47K downloads in-window; victims incl. NVIDIA, Deloitte. Root cause: stolen PyPI token via compromised Trivy/Checkmarx CI Actions.</li>
+          <li><span class="kicker">2026 CVE chain:</span> pre-auth SQLi (exploited within 36 h), unauth RCE (CVSS 10, CISA KEV), MCP auth bypass (CISA KEV), host-header auth bypass.</li>
+          <li><span class="kicker">Footguns:</span> historically unauthenticated by default; <code class="ic">sk-1234</code> default master key accepted by ~10% of internet-exposed instances (Wiz).</li>
+          <li><span class="kicker">Compliance scandal:</span> SOC 2/ISO badges came from Delve (accused of fabricating audits); re-certifying via Vanta.</li>
+          <li class="small">Remediation is real (Mandiant forensics, signed releases, rebuilt CI) — usable if pinned + hash-verified + network-isolated, but trust is damaged.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Pattern &amp; what to demand</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li>No alternative is spotless — <span class="kicker">SSRF is the recurring bug class</span> across Bifrost, Portkey, Helicone, TensorZero — but none match LiteLLM’s density of RCE/SQLi/auth-bypass + breach + badge scandal.</li>
+          <li><span class="kicker">Avoid for new deployments:</span> TensorZero (shut down Jun 2026), Helicone (maintenance mode after Mintlify acquisition; ignored an SSRF disclosure).</li>
+          <li>Demand: self-host or ZDR tier, SOC 2 Type II <em>verified with the named auditor</em>, encrypted log/key storage, no default-open auth, signed releases + pinned hashes, responsive CVE handling, egress hardening (deny link-local/metadata endpoints).</li>
+          <li>The category is consolidating fast (Portkey→PAN, Helicone→Mintlify, TensorZero dead) — <span class="kicker">favor a forkable OSS core</span> or a credible acquirer.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 3 ================= -->
+<section class="slide" id="s3" hidden>
+  <div class="slide-inner">
+    <h2>Claude Code integration reality</h2>
+    <p class="subtitle">What’s officially supported vs. community practice — this determines which tools even qualify.</p>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>Supported paths (Anthropic-documented)</h3>
+        <ul class="tight">
+          <li><span class="kicker">Claude apps gateway — built into the <code class="ic">claude</code> binary itself.</span> Browser SSO via your IdP, managed settings per IdP group, OTLP usage metrics, spend limits. Upstreams: Anthropic API, Bedrock, Vertex, Foundry. Evaluate this first — it may cover auth + metrics for free.</li>
+          <li><span class="kicker">Bring-your-own gateway:</span> Anthropic documents the exact compatibility protocol; LiteLLM, Bifrost, TrueFoundry, Kong, Zuplo, agentgateway known-working. Config is just env vars, distributed org-wide via managed settings (MDM):</li>
+        </ul>
+        <div class="panel flush" style="margin-top:8px;box-shadow:none">
+          <div class="pad mono" style="font-size:12px;line-height:1.7">
+            ANTHROPIC_BASE_URL=https://gw.corp.com<br>
+            ANTHROPIC_AUTH_TOKEN=&lt;gateway-issued&gt;<br>
+            ENABLE_TOOL_SEARCH=true
+          </div>
+        </div>
+        <ul class="tight" style="margin-top:8px">
+          <li>Anthropic <span class="kicker">does not support routing Claude Code to non-Claude models</span> through any gateway — that path is community territory (below).</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Non-Anthropic models (unsupported, mature)</h3>
+        <ul class="tight">
+          <li><span class="kicker">First-party Anthropic-compatible endpoints:</span> Kimi (<code class="ic">api.moonshot.ai/anthropic</code>) and GLM (<code class="ic">api.z.ai/api/anthropic</code>) officially document Claude Code setups — same <code class="ic">BASE_URL</code> + <code class="ic">AUTH_TOKEN</code> pattern, no translation layer needed.</li>
+          <li><span class="kicker">Translation routers:</span> claude-code-router (~26k★, scenario routing, credential pools), LiteLLM <code class="ic">/v1/messages</code>, Bifrost. Works well for routine agentic coding.</li>
+        </ul>
+        <h3 style="margin-top:14px">What degrades behind a translator</h3>
+        <ul class="tight">
+          <li><span class="badge b-bad">COST</span> prompt-cache markers stripped → silent full-price re-billing; test <code class="ic">/cost</code> per provider</li>
+          <li><span class="badge b-warn">ACCURACY</span> <code class="ic">/cost</code> token accounting wrong unless proxy synthesizes Anthropic-shaped usage</li>
+          <li><span class="badge b-warn">QUALITY</span> thinking blocks, tool-call fidelity (nested schemas, parallel calls), MCP tool search disabled on non-Anthropic hosts</li>
+          <li><span class="badge b-neutral">MISC</span> Remote Control refuses non-Anthropic base URLs; set <em>every</em> model-tier env var — partial config fails silently</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <span class="kicker">Practical split:</span> keep primary Claude traffic on the supported path (gateway → Anthropic/Bedrock/Vertex). Offer Kimi/GLM/Gemini as an <em>opt-in budget lane</em> via translation for cost-sensitive or experimentation workloads — never as the silent default, because the failure modes above are quiet.
+    </div>
+  </div>
+</section>
+
+<!-- ================= SLIDE 4 ================= -->
+<section class="slide" id="s4" hidden>
+  <div class="slide-inner">
+    <h2>Build vs. buy — and the recommendation</h2>
+    <p class="subtitle">Baseline token spend: ~$150–250/dev/mo for heavy Claude Code use (50 devs ≈ $7.5–12.5k/mo). Gateway cost is small next to that — pick on risk and ops burden.</p>
+
+    <div class="grid3" style="margin-bottom:16px">
+      <div class="panel stat"><span class="n">$0–800<span style="font-size:13px">/mo</span></span><span class="l">vendor, self-host OSS or hosted team tier (Bifrost/LiteLLM OSS, Portkey $49, Helicone-scale tiers). LiteLLM Enterprise ≈ $30k/yr (est.), Kong $30–120k/yr</span></div>
+      <div class="panel stat"><span class="n">3–6 <span style="font-size:13px">wk</span></span><span class="l">in-house MVP: proxy + auth + Redis budgets + Postgres logging + SSE passthrough + failover</span></div>
+      <div class="panel stat"><span class="n">4–6 <span style="font-size:13px">mo</span></span><span class="l">production-grade in-house (HA, &lt;50 ms, price tables, SSO, audit) <em>plus</em> 0.1–0.25 FTE forever</span></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>If you build: day-1 quick wins vs. hard later</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li><span class="badge b-ok">DAY 1</span> single org upstream key + per-user virtual keys — kills key sprawl instantly</li>
+          <li><span class="badge b-ok">DAY 1</span> per-user daily caps in Redis (429 + clear message); 50-person teams without caps can exceed $10k/mo</li>
+          <li><span class="badge b-ok">DAY 1</span> usage log (user, model, tokens, $) → Postgres; raw SSE byte-relay, meter from stream-end usage events</li>
+          <li><span class="badge b-ok">DAY 1</span> failover chain Anthropic → Bedrock on 429/5xx, capped retries</li>
+          <li><span class="badge b-bad">HARD</span> per-model cost accounting — maintained price tables are the biggest ongoing tax; silent mis-metering on every provider price change</li>
+          <li><span class="badge b-bad">HARD</span> full-prompt log storage: naive ≈ 14–31 GB/day; tiering + sampling bring $9k/mo → $400–900/mo</li>
+          <li><span class="badge b-bad">HARD</span> &lt;20 ms PII scanning at RPS; multi-provider failover with semantic equivalence; SSO groups; tamper-evident audit</li>
+        </ul>
+        <p class="small" style="margin-top:8px">Reference: Uber’s gateway serves 30 teams / 16M queries/mo, built by ~2 engineers — but mirroring one stable API and accepting PII-redaction latency were deliberate scope cuts.</p>
+      </div>
+      <div class="panel">
+        <h3>Recommendation — adopt, then maybe build</h3>
+        <ul class="tight small" style="color:var(--ink)">
+          <li><span class="kicker">1 · Week 0:</span> evaluate Anthropic’s built-in <span class="kicker">Claude apps gateway</span> — SSO, per-group managed settings, OTLP metrics, zero new vendor. It may be your auth + metrics layer for free.</li>
+          <li><span class="kicker">2 · Core gateway: self-host Bifrost OSS</span> (Go, µs-scale in-process PII, translation as core feature, clean security record). Budget for Enterprise only if you need the Anthropic-passthrough route + OIDC/SCIM. <span class="kicker">Alternative:</span> LiteLLM OSS — broader features, but only with pinned/hash-verified installs, network isolation, and acceptance of its 2026 track record.</li>
+          <li><span class="kicker">3 · Hosted shortcut:</span> if self-hosting is the blocker, TrueFoundry or Portkey ($49/mo tier) have documented Claude Code setups — accept the compliance review; verify the auditor.</li>
+          <li><span class="kicker">4 · Failover:</span> Bedrock/Vertex PAYG as the exhaustion lane; OpenRouter BYOK optional as a further backstop (~5% fee).</li>
+          <li><span class="kicker">5 · Defer in-house build.</span> Revisit only if you need agent-aware routing or unusual compliance — and budget 4–6 eng-months + permanent 0.1–0.25 FTE when you do. The proxy is easy; metering tables, log economics, and provider API churn are the real product.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="src">Key sources: code.claude.com/docs (gateways, llm-gateway-protocol) · Trend Micro / Wiz / Sysdig on the LiteLLM breach &amp; CVEs · uber.com/blog/genai-gateway · github.com/maximhq/bifrost · github.com/musistudio/claude-code-router · truefoundry.com pricing guides. Vendor perf figures are marketing-grade; enterprise prices are third-party estimates. Compiled Sep 16, 2026.</p>
+  </div>
+</section>
+</main>
+
+<nav>
+  <button id="prev" type="button">← Prev</button>
+  <div class="dots" id="dots"></div>
+  <button id="next" type="button">Next →</button>
+</nav>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var dots=document.getElementById('dots');
+  var counter=document.getElementById('counter');
+  var prev=document.getElementById('prev');
+  var next=document.getElementById('next');
+  var cur=0;
+  slides.forEach(function(_,i){
+    var d=document.createElement('button');
+    d.type='button';
+    d.setAttribute('aria-label','Slide '+(i+1));
+    d.addEventListener('click',function(){go(i)});
+    dots.appendChild(d);
+  });
+  function go(i){
+    cur=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach(function(s,j){s.hidden=j!==cur});
+    [].slice.call(dots.children).forEach(function(d,j){
+      d.setAttribute('aria-current',j===cur?'true':'false');
+    });
+    counter.textContent=(cur+1)+' / '+slides.length;
+    prev.disabled=cur===0;
+    next.disabled=cur===slides.length-1;
+  }
+  prev.addEventListener('click',function(){go(cur-1)});
+  next.addEventListener('click',function(){go(cur+1)});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight')go(cur+1);
+    else if(e.key==='ArrowLeft')go(cur-1);
+  });
+  go(0);
+})();
+</script>
