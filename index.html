@@ -60,9 +60,8 @@ body{
   display:flex;
   flex-direction:column;
 }
-.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.mono{font-family:"IBM Plex Mono",monospace}
 
-/* ---------- chrome ---------- */
 header{
   display:flex;align-items:center;gap:12px;
   padding:12px 20px;
@@ -102,7 +101,6 @@ nav button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 }
 .dots button[aria-current="true"]{background:var(--accent)}
 
-/* ---------- slide content ---------- */
 h2{font-size:24px;font-weight:700;margin:0 0 2px;letter-spacing:-.01em;text-wrap:balance}
 .subtitle{font-size:13px;color:var(--muted);margin:0 0 18px}
 h3{
@@ -136,7 +134,7 @@ ul.tight li::marker{color:var(--accent)}
 .b-acc{background:var(--accent-soft);color:var(--accent)}
 
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);box-shadow:var(--shadow)}
-table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:760px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:820px}
 th{
   font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;
   letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
@@ -163,18 +161,7 @@ td.tt{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;wh
 .stat .n{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
 .stat .l{font-size:12px;color:var(--muted)}
 
-.flow{
-  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  font-family:"IBM Plex Mono",monospace;font-size:12px;margin:8px 0 0;
-}
-.flow .node{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:4px 10px}
-.flow .arr{color:var(--accent);font-weight:600}
-
 code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--chip);padding:1px 5px;border-radius:4px}
-
-@media (prefers-reduced-motion:no-preference){
-  .slide{transition:opacity .18s ease}
-}
 </style>
 
 <header>
@@ -188,42 +175,40 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
 <section class="slide" id="s1">
   <div class="slide-inner">
     <h2>Requirements</h2>
-    <p class="subtitle">All Claude Code traffic (engineers now, unattended agents later) routed through one gateway instead of directly to Anthropic.</p>
+    <p class="subtitle">All Claude Code traffic (engineers now, unattended agents later) routed through one gateway. Baseline spend assumption: strong developers average <span class="mono" style="font-weight:600">~$4,000/dev/mo</span> on Claude → 20 devs ≈ $80k/mo, 50 devs ≈ $200k/mo in tokens.</p>
 
     <div class="grid2">
       <div class="panel">
-        <h3>Core — from your list</h3>
+        <h3>Core</h3>
         <ul class="tight">
           <li><span class="kicker">AuthN/Z:</span> SSO/OIDC sign-in, per-user virtual keys, per-user <em>and</em> per-group spend + rate limits</li>
-          <li><span class="kicker">Metrics:</span> usage &amp; cost per user/team/model, prompt capture — with retention controls, because full prompt logs become a liability themselves</li>
-          <li><span class="kicker">Guardrails:</span> PII/secret detection + redaction before egress — <span class="badge b-acc">must be in-process, &lt;20&nbsp;ms</span> LLM-judge guardrails are too slow for interactive CLI</li>
-          <li><span class="kicker">Failover:</span> Anthropic quota exhausted / 429 / 5xx → Bedrock or Vertex PAYG, automatic</li>
-          <li><span class="kicker">Translation:</span> serve Claude Code (Anthropic Messages format) from Kimi / GLM / Gemini backends</li>
+          <li><span class="kicker">Metrics:</span> usage &amp; cost per user/team/model, prompt capture — with retention controls (full prompt logs are a liability themselves)</li>
+          <li><span class="kicker">Guardrails:</span> PII/secret redaction before egress — <span class="badge b-acc">in-process, &lt;20&nbsp;ms</span> LLM-judge guardrails are too slow for interactive CLI</li>
+          <li><span class="kicker">Failover:</span> Anthropic quota exhausted / 429 / 5xx → Bedrock/Vertex PAYG (Claude-family) automatic</li>
+          <li><span class="kicker">Budget lane:</span> route cost-insensitive work to Kimi / GLM / DeepSeek Flash tiers (10–30× cheaper than Claude)</li>
         </ul>
       </div>
       <div class="panel">
-        <h3>Gaps worth adding — “something else”</h3>
+        <h3>Non-obvious must-haves</h3>
         <ul class="tight">
-          <li><span class="kicker">Prompt-cache preservation</span> — a proxy that strips <code class="ic">cache_control</code> markers silently re-bills the whole conversation as uncached input every turn. Biggest hidden cost driver.</li>
-          <li><span class="kicker">Streaming (SSE) passthrough</span> with usage accounting from stream-end events — mid-stream budget kills are painful</li>
-          <li><span class="kicker">Key custody:</span> upstream provider keys in a vault, rotation, one engineer leaves → revoke one virtual key, not the shared org key</li>
+          <li><span class="kicker">Prompt-cache preservation</span> — a proxy stripping <code class="ic">cache_control</code> markers silently re-bills the whole conversation uncached, every turn. At $4k/dev/mo this is the single biggest cost lever.</li>
+          <li><span class="kicker">Streaming (SSE) passthrough</span> with usage accounting from stream-end events</li>
+          <li><span class="kicker">Key custody:</span> upstream keys in a vault; engineer leaves → revoke one virtual key, not the shared org key</li>
           <li><span class="kicker">Agent identities:</span> unattended agents get separate keys, tighter budgets, own audit trail</li>
-          <li><span class="kicker">Audit logs → SIEM</span>, log encryption at rest, configurable retention TTL</li>
-          <li><span class="kicker">Latency budget:</span> &lt;50&nbsp;ms added, HA — gateway down means every engineer blocked</li>
+          <li><span class="kicker">Audit logs → SIEM</span>, log encryption at rest, retention TTL</li>
+          <li><span class="kicker">Latency budget &lt;50&nbsp;ms, HA</span> — gateway down = every engineer blocked</li>
         </ul>
       </div>
     </div>
 
     <div class="callout danger">
-      <span class="kicker">“Share subscriptions” needs re-framing.</span>
-      Pooling Pro/Max OAuth quotas across engineers through a gateway is a ToS violation — and Anthropic has <em>technically enforced</em> it since early 2026 (server-side rejection of subscription tokens in third-party contexts). The legitimate patterns: <span class="kicker">API keys with Console billing</span>, <span class="kicker">Enterprise managed seats</span>, or <span class="kicker">Bedrock/Vertex billing</span>. The gateway then gives you the “shared pool” feeling via org-level keys + per-user attribution.
+      <span class="kicker">“Share subscriptions” is off the table.</span>
+      Pooling Pro/Max OAuth quotas through a gateway violates Anthropic ToS and is <em>technically enforced</em> since early 2026 (server-side rejection of subscription tokens outside first-party products). Legitimate “shared pool”: org-level API keys with Console billing (or Bedrock/Vertex, or Enterprise managed seats) behind the gateway, with per-user attribution and budgets. At $4k/dev/mo usage levels, API billing is the only model that scales anyway.
     </div>
 
-    <div class="flow">
-      <span class="node">Claude Code / agents</span><span class="arr">→</span>
-      <span class="node">gateway: auth · budget · PII scan · log</span><span class="arr">→</span>
-      <span class="node">Anthropic API</span><span class="arr">/ fallback →</span>
-      <span class="node">Bedrock · Vertex · Kimi · GLM</span>
+    <div class="callout">
+      <span class="kicker">Why percentage-fee vendors are disqualified at our scale:</span>
+      a 5% markup on $80k/mo token spend = <span class="kicker">$4k/mo</span> (on $200k/mo = $10k/mo) — more than any flat-priced gateway costs in total. Rule: flat license or self-host only; OpenRouter-style 5% fees only as an emergency backstop.
     </div>
   </div>
 </section>
@@ -231,74 +216,53 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
 <!-- ================= SLIDE 2 ================= -->
 <section class="slide" id="s2" hidden>
   <div class="slide-inner">
-    <h2>Tool landscape &amp; security track record</h2>
-    <p class="subtitle">✅ full&nbsp;&nbsp;🟡 partial / enterprise-gated&nbsp;&nbsp;❌ no. Security column is the tiebreaker — a gateway holds all your provider keys and full prompt logs.</p>
+    <h2>Top 3 solutions vs. in-house build</h2>
+    <p class="subtitle">Trimmed from a 9-tool landscape (dropped: Portkey — Palo Alto acquisition + log-based pricing that gets unpredictable at our volume; Kong — AI plugins Enterprise-only, $30–120k/yr; Cloudflare — no per-user budgets; TensorZero — dead; Helicone — maintenance mode).</p>
 
     <div class="tablewrap">
       <table>
         <thead><tr>
-          <th>Tool</th><th>Model</th><th>/v1/messages<br>native</th><th>SSO + per-user<br>/group budgets</th><th>Fast PII<br>guardrails</th><th>Failover</th><th>Translate to<br>Kimi/GLM/Gemini</th><th>Security record</th>
+          <th>Option</th><th>License / model</th><th>Price</th><th>Self-host infra<br>(GCP/AWS, HA pair)</th><th>Fit for requirements</th><th>Security record</th>
         </tr></thead>
         <tbody>
           <tr>
-            <td class="rowhead">LiteLLM</td><td>OSS (MIT) + Ent. license</td>
-            <td>✅</td><td>✅ OSS budgets; SSO/RBAC = Ent.</td><td>🟡 Presidio hooks (Python)</td><td>✅</td><td>✅</td>
-            <td><span class="badge b-bad">BAD</span> see below</td>
+            <td class="rowhead">Bifrost</td>
+            <td><span class="badge b-ok">OPEN SOURCE</span> Apache 2.0, Go + paid Enterprise</td>
+            <td>OSS free. Enterprise (SSO/OIDC+SCIM, Anthropic-passthrough route, vault keys, audit) = quote-only</td>
+            <td class="tt">~$150–300/mo<br><span class="small">2× small VMs + managed PG + Redis</span></td>
+            <td>Fastest (µs-scale in-process PII via regex/Gitleaks — meets &lt;20ms bar), translation Anthropic↔Kimi/GLM/Gemini is a core feature, virtual keys + hierarchical budgets. ⚠ native /v1/messages passthrough is Enterprise-only</td>
+            <td><span class="badge b-ok">CLEAN</span> one SSRF CVE, fixed fast</td>
           </tr>
           <tr>
-            <td class="rowhead">Bifrost</td><td>OSS (Apache 2.0), Go</td>
-            <td>🟡 passthrough = Ent.</td><td>🟡 mostly Ent.</td><td>✅ in-process regex/Gitleaks, µs-scale</td><td>✅ adaptive</td><td>✅ core feature</td>
-            <td><span class="badge b-ok">CLEAN</span> 1 SSRF CVE, fast fix</td>
+            <td class="rowhead">LiteLLM</td>
+            <td><span class="badge b-ok">OPEN SOURCE</span> MIT, Python + Enterprise license on same image</td>
+            <td>OSS free (budgets, failover, translation, /v1/messages all included). Enterprise ≈ <span class="kicker">$30k/yr</span> (est., quote-only) for SSO &gt;5 users, RBAC, SCIM, audit, guardrail suite</td>
+            <td class="tt">~$300–600/mo<br><span class="small">Python: bigger VMs, same PG/Redis</span></td>
+            <td>Most mature + broadest feature set, 57k★, category default. PII via Presidio hooks (Python — slower than Bifrost). Rust rewrite in progress (Dec 2026)</td>
+            <td><span class="badge b-bad">BAD</span> Mar 2026 PyPI supply-chain breach (TeamPCP; NVIDIA, Deloitte among victims); 3× CISA-KEV exploited CVEs in 2026; historic default <code class="ic">sk-1234</code> key; SOC 2 badge came from Delve (fabricated-audit scandal), re-certifying via Vanta. Usable only pinned + hash-verified + network-isolated</td>
           </tr>
           <tr>
-            <td class="rowhead">Portkey</td><td>OSS gateway + SaaS (Palo Alto N.)</td>
-            <td>✅</td><td>✅ virtual keys; SSO = Ent.</td><td>✅ 50+ sync guardrails</td><td>✅</td><td>✅</td>
-            <td><span class="badge b-warn">MIXED</span> SSRF CVE + incomplete fix</td>
+            <td class="rowhead">TrueFoundry</td>
+            <td><span class="badge b-warn">PROPRIETARY</span> SaaS / VPC / on-prem / air-gapped</td>
+            <td>SaaS: free 50k req/mo → <span class="kicker">$499/mo</span> Pro (1M req, ~20 heavy devs) → <span class="kicker">$2,999/mo</span> Pro Plus; Enterprise custom. Self-host gateway plane ≈ $600–1,000/mo infra + license</td>
+            <td class="tt">SaaS: $0 infra<br><span class="small">VPC option: ~$600–1k/mo</span></td>
+            <td>Most Claude-Code-focused: documented setup incl. MDM-managed settings, RBAC + per-dev/team budgets, built-in PII + injection guardrails (~3–4ms claimed), “Virtual Models” serve GPT/Gemini behind Anthropic protocol</td>
+            <td><span class="badge b-neutral">NO PUBLIC ISSUES</span> closed source — verify SOC 2 with the named auditor</td>
           </tr>
           <tr>
-            <td class="rowhead">TrueFoundry</td><td>Proprietary, SaaS/VPC/air-gap</td>
-            <td>✅</td><td>✅ RBAC + budgets + MDM</td><td>✅ ~3–4&nbsp;ms claimed</td><td>✅</td><td>✅ “Virtual Models”</td>
-            <td><span class="badge b-neutral">NO PUBLIC ISSUES</span> closed source</td>
-          </tr>
-          <tr>
-            <td class="rowhead">Kong AI GW</td><td>OSS core; AI plugins Ent.-only</td>
-            <td>✅</td><td>🟡 consumers/groups + OIDC</td><td>🟡 PII plugin = Ent.</td><td>✅</td><td>🟡 Anthropic-family only</td>
-            <td><span class="badge b-ok">CLEAN</span> mature patch process</td>
-          </tr>
-          <tr>
-            <td class="rowhead">Cloudflare AI GW</td><td>Hosted SaaS only</td>
-            <td>🟡 proxy, no translation</td><td>❌ account-level only</td><td>✅ free edge DLP</td><td>🟡</td><td>❌</td>
-            <td><span class="badge b-ok">CLEAN</span> but logs full payloads</td>
-          </tr>
-          <tr>
-            <td class="rowhead">OpenRouter</td><td>Hosted only</td>
-            <td>🟡/❌</td><td>🟡 workspaces; SSO = Ent.</td><td>❌</td><td>✅ excellent</td><td>❌</td>
-            <td><span class="badge b-neutral">CLEAN</span> key custody delegated</td>
+            <td class="rowhead">In-house build</td>
+            <td><span class="badge b-neutral">YOURS</span> e.g. FastAPI/Go + Redis + Postgres</td>
+            <td>MVP <span class="kicker">3–6 eng-weeks</span>; production-grade <span class="kicker">4–6 eng-months</span> + <span class="kicker">0.1–0.25 FTE forever</span> (~$30–80k/yr loaded)</td>
+            <td class="tt">~$300–800/mo<br><span class="small">incl. log storage after tiering/sampling</span></td>
+            <td>Day-1 wins are real (§4); the durable tax is price tables per model, streaming cost accounting, &lt;20ms PII at RPS, SSO groups, tamper-evident audit, provider API churn oncall</td>
+            <td><span class="badge b-neutral">YOUR PROBLEM</span> you own CVEs, audits, key custody</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="grid2" style="margin-top:16px">
-      <div class="panel">
-        <h3>LiteLLM — what actually happened</h3>
-        <ul class="tight small" style="color:var(--ink)">
-          <li><span class="kicker">Mar 24 2026 — PyPI supply-chain breach</span> (TeamPCP): poisoned <code class="ic">litellm</code> 1.82.7/1.82.8, credential stealer + systemd backdoor, ~47K downloads in-window; victims incl. NVIDIA, Deloitte. Root cause: stolen PyPI token via compromised Trivy/Checkmarx CI Actions.</li>
-          <li><span class="kicker">2026 CVE chain:</span> pre-auth SQLi (exploited within 36 h), unauth RCE (CVSS 10, CISA KEV), MCP auth bypass (CISA KEV), host-header auth bypass.</li>
-          <li><span class="kicker">Footguns:</span> historically unauthenticated by default; <code class="ic">sk-1234</code> default master key accepted by ~10% of internet-exposed instances (Wiz).</li>
-          <li><span class="kicker">Compliance scandal:</span> SOC 2/ISO badges came from Delve (accused of fabricating audits); re-certifying via Vanta.</li>
-          <li class="small">Remediation is real (Mandiant forensics, signed releases, rebuilt CI) — usable if pinned + hash-verified + network-isolated, but trust is damaged.</li>
-        </ul>
-      </div>
-      <div class="panel">
-        <h3>Pattern &amp; what to demand</h3>
-        <ul class="tight small" style="color:var(--ink)">
-          <li>No alternative is spotless — <span class="kicker">SSRF is the recurring bug class</span> across Bifrost, Portkey, Helicone, TensorZero — but none match LiteLLM’s density of RCE/SQLi/auth-bypass + breach + badge scandal.</li>
-          <li><span class="kicker">Avoid for new deployments:</span> TensorZero (shut down Jun 2026), Helicone (maintenance mode after Mintlify acquisition; ignored an SSRF disclosure).</li>
-          <li>Demand: self-host or ZDR tier, SOC 2 Type II <em>verified with the named auditor</em>, encrypted log/key storage, no default-open auth, signed releases + pinned hashes, responsive CVE handling, egress hardening (deny link-local/metadata endpoints).</li>
-          <li>The category is consolidating fast (Portkey→PAN, Helicone→Mintlify, TensorZero dead) — <span class="kicker">favor a forkable OSS core</span> or a credible acquirer.</li>
-        </ul>
-      </div>
+    <div class="callout">
+      <span class="kicker">Cost context:</span> at $80k/mo token spend (20 devs × $4k), even the priciest flat option here (LiteLLM Ent ≈ $2.5k/mo + infra) is ~3–4% of spend; Bifrost OSS self-host is ~0.3%. The in-house build’s year-1 cost (eng time) exceeds <em>years</em> of any vendor. Vendor perf figures (µs/ms overhead) are marketing-grade — measure P50/P99 before committing.
     </div>
   </div>
 </section>
@@ -306,15 +270,15 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
 <!-- ================= SLIDE 3 ================= -->
 <section class="slide" id="s3" hidden>
   <div class="slide-inner">
-    <h2>Claude Code integration reality</h2>
-    <p class="subtitle">What’s officially supported vs. community practice — this determines which tools even qualify.</p>
+    <h2>Claude Code integration &amp; the budget-model lane</h2>
+    <p class="subtitle">What’s officially supported, and where the latest Chinese models actually live (spoiler: not Bedrock/Vertex).</p>
 
     <div class="grid2">
       <div class="panel">
         <h3>Supported paths (Anthropic-documented)</h3>
         <ul class="tight">
-          <li><span class="kicker">Claude apps gateway — built into the <code class="ic">claude</code> binary itself.</span> Browser SSO via your IdP, managed settings per IdP group, OTLP usage metrics, spend limits. Upstreams: Anthropic API, Bedrock, Vertex, Foundry. Evaluate this first — it may cover auth + metrics for free.</li>
-          <li><span class="kicker">Bring-your-own gateway:</span> Anthropic documents the exact compatibility protocol; LiteLLM, Bifrost, TrueFoundry, Kong, Zuplo, agentgateway known-working. Config is just env vars, distributed org-wide via managed settings (MDM):</li>
+          <li><span class="kicker">Claude apps gateway — built into the <code class="ic">claude</code> binary.</span> Browser SSO via your IdP, managed settings per IdP group, OTLP usage metrics, spend limits. Upstreams: Anthropic API, Bedrock, Vertex, Foundry. <span class="kicker">Evaluate first — auth + metrics for $0.</span></li>
+          <li><span class="kicker">Bring-your-own gateway</span> — compatibility protocol is documented; config is env vars pushed org-wide via MDM managed settings:</li>
         </ul>
         <div class="panel flush" style="margin-top:8px;box-shadow:none">
           <div class="pad mono" style="font-size:12px;line-height:1.7">
@@ -324,27 +288,23 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
           </div>
         </div>
         <ul class="tight" style="margin-top:8px">
-          <li>Anthropic <span class="kicker">does not support routing Claude Code to non-Claude models</span> through any gateway — that path is community territory (below).</li>
+          <li>Anthropic <span class="kicker">does not support routing Claude Code to non-Claude models</span> through any gateway — that lane is community practice (right column).</li>
         </ul>
       </div>
       <div class="panel">
-        <h3>Non-Anthropic models (unsupported, mature)</h3>
+        <h3>Budget lane: latest Chinese models, pay-per-token</h3>
         <ul class="tight">
-          <li><span class="kicker">First-party Anthropic-compatible endpoints:</span> Kimi (<code class="ic">api.moonshot.ai/anthropic</code>) and GLM (<code class="ic">api.z.ai/api/anthropic</code>) officially document Claude Code setups — same <code class="ic">BASE_URL</code> + <code class="ic">AUTH_TOKEN</code> pattern, no translation layer needed.</li>
-          <li><span class="kicker">Translation routers:</span> claude-code-router (~26k★, scenario routing, credential pools), LiteLLM <code class="ic">/v1/messages</code>, Bifrost. Works well for routine agentic coding.</li>
-        </ul>
-        <h3 style="margin-top:14px">What degrades behind a translator</h3>
-        <ul class="tight">
-          <li><span class="badge b-bad">COST</span> prompt-cache markers stripped → silent full-price re-billing; test <code class="ic">/cost</code> per provider</li>
-          <li><span class="badge b-warn">ACCURACY</span> <code class="ic">/cost</code> token accounting wrong unless proxy synthesizes Anthropic-shaped usage</li>
-          <li><span class="badge b-warn">QUALITY</span> thinking blocks, tool-call fidelity (nested schemas, parallel calls), MCP tool search disabled on non-Anthropic hosts</li>
-          <li><span class="badge b-neutral">MISC</span> Remote Control refuses non-Anthropic base URLs; set <em>every</em> model-tier env var — partial config fails silently</li>
+          <li><span class="badge b-bad">NOT BEDROCK/VERTEX</span> Bedrock is 1–2 generations stale (Kimi K2.5, GLM 4.7, DeepSeek V3.2); Vertex makes you self-deploy on GPU-hours. Dead end for “latest + pay per token.”</li>
+          <li><span class="badge b-ok">FIRST-PARTY APIs</span> Moonshot (<code class="ic">api.moonshot.ai</code>), z.ai (<code class="ic">api.z.ai</code>), DeepSeek all sell pay-per-token <em>and expose Anthropic-compatible endpoints natively</em> — Claude Code works through the gateway with no translation layer at all.</li>
+          <li><span class="kicker">Prices:</span> GLM 5.3 Flash <span class="mono">$0.15/$0.50</span> · DeepSeek V4 Flash <span class="mono">$0.22–0.44/$0.66–1.32</span> per 1M tok (in/out) — 10–30× cheaper than Claude; both strong at coding. Flagships (Kimi K3 $3/$15) are Sonnet-priced — no savings there.</li>
+          <li><span class="badge b-warn">DATA RESIDENCY</span> first-party = prompts go to Chinese providers. US-hosted alternative: Fireworks/OpenRouter serve the same open weights at ~+50% premium. Gateway makes this a per-team policy toggle.</li>
+          <li><span class="kicker">Degrades behind any non-Claude lane:</span> prompt caching economics, <code class="ic">/cost</code> accuracy, thinking blocks, tool-call edge cases. Offer as opt-in budget lane, never silent default.</li>
         </ul>
       </div>
     </div>
 
     <div class="callout">
-      <span class="kicker">Practical split:</span> keep primary Claude traffic on the supported path (gateway → Anthropic/Bedrock/Vertex). Offer Kimi/GLM/Gemini as an <em>opt-in budget lane</em> via translation for cost-sensitive or experimentation workloads — never as the silent default, because the failure modes above are quiet.
+      <span class="kicker">Pitch line:</span> premium lane = Claude (supported path, gateway → Anthropic/Bedrock PAYG failover); budget lane = Flash-tier Chinese models via first-party endpoints through the same gateway — one auth, one budget system, one audit trail, policy decides who gets which lane.
     </div>
   </div>
 </section>
@@ -352,42 +312,42 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
 <!-- ================= SLIDE 4 ================= -->
 <section class="slide" id="s4" hidden>
   <div class="slide-inner">
-    <h2>Build vs. buy — and the recommendation</h2>
-    <p class="subtitle">Baseline token spend: ~$150–250/dev/mo for heavy Claude Code use (50 devs ≈ $7.5–12.5k/mo). Gateway cost is small next to that — pick on risk and ops burden.</p>
+    <h2>Recommendation</h2>
+    <p class="subtitle">Adopt, don’t build. Numbers at 20 devs × $4k/mo = $80k/mo token spend.</p>
 
     <div class="grid3" style="margin-bottom:16px">
-      <div class="panel stat"><span class="n">$0–800<span style="font-size:13px">/mo</span></span><span class="l">vendor, self-host OSS or hosted team tier (Bifrost/LiteLLM OSS, Portkey $49, Helicone-scale tiers). LiteLLM Enterprise ≈ $30k/yr (est.), Kong $30–120k/yr</span></div>
-      <div class="panel stat"><span class="n">3–6 <span style="font-size:13px">wk</span></span><span class="l">in-house MVP: proxy + auth + Redis budgets + Postgres logging + SSE passthrough + failover</span></div>
-      <div class="panel stat"><span class="n">4–6 <span style="font-size:13px">mo</span></span><span class="l">production-grade in-house (HA, &lt;50 ms, price tables, SSO, audit) <em>plus</em> 0.1–0.25 FTE forever</span></div>
+      <div class="panel stat"><span class="n">$0</span><span class="l">week 0: Anthropic’s built-in Claude apps gateway — SSO, per-group managed settings, OTLP metrics. May cover auth + attribution alone</span></div>
+      <div class="panel stat"><span class="n">~$200<span style="font-size:13px">/mo</span></span><span class="l">Bifrost OSS self-hosted on GCP/AWS (0.25% of token spend) — or $0 infra + $499/mo TrueFoundry SaaS if you want zero ops</span></div>
+      <div class="panel stat"><span class="n">>4–6 <span style="font-size:13px">mo</span></span><span class="l">what an in-house production build costs before it matches the above — plus 0.1–0.25 FTE forever</span></div>
     </div>
 
     <div class="grid2">
       <div class="panel">
-        <h3>If you build: day-1 quick wins vs. hard later</h3>
+        <h3>Phased plan</h3>
         <ul class="tight small" style="color:var(--ink)">
-          <li><span class="badge b-ok">DAY 1</span> single org upstream key + per-user virtual keys — kills key sprawl instantly</li>
-          <li><span class="badge b-ok">DAY 1</span> per-user daily caps in Redis (429 + clear message); 50-person teams without caps can exceed $10k/mo</li>
-          <li><span class="badge b-ok">DAY 1</span> usage log (user, model, tokens, $) → Postgres; raw SSE byte-relay, meter from stream-end usage events</li>
-          <li><span class="badge b-ok">DAY 1</span> failover chain Anthropic → Bedrock on 429/5xx, capped retries</li>
-          <li><span class="badge b-bad">HARD</span> per-model cost accounting — maintained price tables are the biggest ongoing tax; silent mis-metering on every provider price change</li>
-          <li><span class="badge b-bad">HARD</span> full-prompt log storage: naive ≈ 14–31 GB/day; tiering + sampling bring $9k/mo → $400–900/mo</li>
-          <li><span class="badge b-bad">HARD</span> &lt;20 ms PII scanning at RPS; multi-provider failover with semantic equivalence; SSO groups; tamper-evident audit</li>
+          <li><span class="kicker">1 · Week 0:</span> built-in Claude apps gateway for SSO + attribution + metrics. Free, supported, zero vendor review.</li>
+          <li><span class="kicker">2 · Core gateway: Bifrost OSS self-host</span> (clean security record, µs-scale in-process PII, translation core feature). Pay Enterprise only when you need OIDC/SCIM + the Anthropic-passthrough route — likely within a quarter, so get the quote early. <span class="kicker">Fallback:</span> LiteLLM OSS if you need its breadth — pinned + hash-verified + isolated only. <span class="kicker">No-ops option:</span> TrueFoundry SaaS $499/mo.</li>
+          <li><span class="kicker">3 · Budget lane:</span> z.ai + DeepSeek first-party keys in the gateway; GLM 5.3 Flash / DeepSeek V4 Flash as opt-in models; Fireworks route for teams with China-data restrictions.</li>
+          <li><span class="kicker">4 · Failover:</span> Anthropic → Bedrock PAYG (Claude-family continuity). OpenRouter only as emergency backstop — its 5% fee ≈ $4k/mo at our scale.</li>
+          <li><span class="kicker">5 · Revisit in-house build</span> only if agent-aware routing or unusual compliance demands it — budget 4–6 eng-months + permanent 0.1–0.25 FTE.</li>
         </ul>
-        <p class="small" style="margin-top:8px">Reference: Uber’s gateway serves 30 teams / 16M queries/mo, built by ~2 engineers — but mirroring one stable API and accepting PII-redaction latency were deliberate scope cuts.</p>
       </div>
       <div class="panel">
-        <h3>Recommendation — adopt, then maybe build</h3>
+        <h3>If you build anyway: day-1 quick wins</h3>
         <ul class="tight small" style="color:var(--ink)">
-          <li><span class="kicker">1 · Week 0:</span> evaluate Anthropic’s built-in <span class="kicker">Claude apps gateway</span> — SSO, per-group managed settings, OTLP metrics, zero new vendor. It may be your auth + metrics layer for free.</li>
-          <li><span class="kicker">2 · Core gateway: self-host Bifrost OSS</span> (Go, µs-scale in-process PII, translation as core feature, clean security record). Budget for Enterprise only if you need the Anthropic-passthrough route + OIDC/SCIM. <span class="kicker">Alternative:</span> LiteLLM OSS — broader features, but only with pinned/hash-verified installs, network isolation, and acceptance of its 2026 track record.</li>
-          <li><span class="kicker">3 · Hosted shortcut:</span> if self-hosting is the blocker, TrueFoundry or Portkey ($49/mo tier) have documented Claude Code setups — accept the compliance review; verify the auditor.</li>
-          <li><span class="kicker">4 · Failover:</span> Bedrock/Vertex PAYG as the exhaustion lane; OpenRouter BYOK optional as a further backstop (~5% fee).</li>
-          <li><span class="kicker">5 · Defer in-house build.</span> Revisit only if you need agent-aware routing or unusual compliance — and budget 4–6 eng-months + permanent 0.1–0.25 FTE when you do. The proxy is easy; metering tables, log economics, and provider API churn are the real product.</li>
+          <li><span class="badge b-ok">DAY 1</span> single org upstream key + per-user virtual keys — kills key sprawl instantly</li>
+          <li><span class="badge b-ok">DAY 1</span> per-user daily caps in Redis (429 + clear message)</li>
+          <li><span class="badge b-ok">DAY 1</span> usage log (user, model, tokens, $) → Postgres; raw SSE relay, meter from stream-end usage events</li>
+          <li><span class="badge b-ok">DAY 1</span> failover chain on 429/5xx with capped retries</li>
+          <li><span class="badge b-bad">HARD</span> per-model price tables (silent mis-metering on every provider price change — biggest ongoing tax)</li>
+          <li><span class="badge b-bad">HARD</span> full-prompt log storage economics (naive ≈ 14–31 GB/day → $9k/mo; tiering + sampling → $400–900/mo)</li>
+          <li><span class="badge b-bad">HARD</span> &lt;20ms PII at RPS, SSO groups, tamper-evident audit, provider API churn oncall</li>
         </ul>
+        <p class="small" style="margin-top:8px">Reference: Uber’s in-house gateway serves 30 teams / 16M queries/mo, ~2 engineers — but they mirrored one stable API and accepted PII-redaction latency as deliberate scope cuts.</p>
       </div>
     </div>
 
-    <p class="src">Key sources: code.claude.com/docs (gateways, llm-gateway-protocol) · Trend Micro / Wiz / Sysdig on the LiteLLM breach &amp; CVEs · uber.com/blog/genai-gateway · github.com/maximhq/bifrost · github.com/musistudio/claude-code-router · truefoundry.com pricing guides. Vendor perf figures are marketing-grade; enterprise prices are third-party estimates. Compiled Sep 16, 2026.</p>
+    <p class="src">Sources: code.claude.com/docs (gateways, llm-gateway-protocol) · github.com/maximhq/bifrost · docs.litellm.ai · truefoundry.com/pricing · Trend Micro / Wiz / Sysdig (LiteLLM incidents) · api.z.ai / api.moonshot.ai pricing pages · docs.fireworks.ai · uber.com/blog/genai-gateway. Enterprise prices are third-party estimates; vendor latency figures are marketing-grade. Compiled Sep 16, 2026.</p>
   </div>
 </section>
 </main>
