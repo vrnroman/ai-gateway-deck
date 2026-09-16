@@ -172,7 +172,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
         <ul class="tight">
           <li><span class="kicker">AuthN/Z:</span> SSO/OIDC sign-in, per-user virtual keys, per-user <em>and</em> per-group spend + rate limits</li>
           <li><span class="kicker">Metrics:</span> usage &amp; cost per user/team/model, prompt capture — with retention controls (full prompt logs are a liability themselves)</li>
-          <li><span class="kicker">Guardrails:</span> PII/secret redaction before egress — <span class="badge b-acc">in-process, &lt;20&nbsp;ms</span> LLM-judge guardrails are too slow for interactive CLI</li>
+          <li><span class="kicker">Guardrails:</span> PII/secret redaction before egress — <span class="badge b-acc">in-process, &lt;200&nbsp;ms</span> comfortable next to multi-second model TTFT; LLM-judge guardrails are too slow for interactive CLI</li>
           <li><span class="kicker">Failover:</span> Anthropic quota exhausted / 429 / 5xx → Bedrock/Vertex PAYG (Claude-family) automatic</li>
           <li><span class="kicker">Budget lane:</span> route cost-insensitive work to Kimi / GLM / DeepSeek Flash tiers (10–30× cheaper than Claude)</li>
         </ul>
@@ -220,7 +220,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
             <td data-label="License"><span class="badge b-ok">OPEN SOURCE</span> Apache 2.0, Go + paid Enterprise</td>
             <td data-label="Price">OSS free. Enterprise (SSO/SCIM, Anthropic passthrough, vault keys, audit) = quote-only</td>
             <td data-label="Self-host infra" class="tt">~$150–300/mo<span class="small">2 small VMs + PG + Redis</span></td>
-            <td data-label="Fit">Fastest; in-process PII (regex/Gitleaks) meets the &lt;20ms bar. Anthropic↔Kimi/GLM/Gemini translation is a core feature. Virtual keys + hierarchical budgets. ⚠ /v1/messages passthrough = Enterprise</td>
+            <td data-label="Fit">Fastest; in-process PII (regex/Gitleaks) easily meets the &lt;200ms bar. Anthropic↔Kimi/GLM/Gemini translation is a core feature. Virtual keys + hierarchical budgets. ⚠ /v1/messages passthrough = Enterprise</td>
             <td data-label="Security"><span class="badge b-ok">CLEAN</span> one SSRF CVE, fixed fast</td>
           </tr>
           <tr>
@@ -244,7 +244,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
             <td data-label="License"><span class="badge b-neutral">YOURS</span> FastAPI/Go + Redis + Postgres</td>
             <td data-label="Price">MVP in <span class="kicker">2–3 days</span> (strong team, AI-assisted); production <span class="kicker">4–6 eng-mo</span> + 0.1–0.25 FTE forever</td>
             <td data-label="Self-host infra" class="tt">~$300–800/mo<span class="small">incl. log storage</span></td>
-            <td data-label="Fit">Day-1 wins are real (slide 4). Durable tax: per-model price tables, streaming cost accounting, &lt;20ms PII at RPS, SSO, audit, provider churn oncall</td>
+            <td data-label="Fit">Day-1 wins are real (slide 4). Durable tax: per-model price tables, streaming cost accounting, &lt;200ms PII at RPS, SSO, audit, provider churn oncall</td>
             <td data-label="Security"><span class="badge b-neutral">YOUR PROBLEM</span> you own CVEs, audits, key custody</td>
           </tr>
         </tbody>
@@ -331,7 +331,7 @@ code.ic{font-family:"IBM Plex Mono",monospace;font-size:.92em;background:var(--c
           <li><span class="badge b-ok">DAY 1</span> failover chain on 429/5xx with capped retries</li>
           <li><span class="badge b-bad">HARD</span> per-model price tables (silent mis-metering on every provider price change — biggest ongoing tax)</li>
           <li><span class="badge b-bad">HARD</span> full-prompt log storage economics (naive ≈ 14–31 GB/day → $9k/mo; tiering + sampling → $400–900/mo)</li>
-          <li><span class="badge b-bad">HARD</span> &lt;20ms PII at RPS, SSO groups, tamper-evident audit, provider API churn oncall</li>
+          <li><span class="badge b-bad">HARD</span> &lt;200ms PII at RPS, SSO groups, tamper-evident audit, provider API churn oncall</li>
         </ul>
         <p class="small" style="margin-top:8px">Reference: Uber’s in-house gateway serves 30 teams / 16M queries/mo, ~2 engineers — but they mirrored one stable API and accepted PII-redaction latency as deliberate scope cuts.</p>
       </div>
